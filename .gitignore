@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build output
+dist/
+**/dist/
+build/
+**/build/
+coverage/
+
+# Tauri / Rust generated output
+target/
+**/target/
+HandySystem/src-tauri/gen/
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.*.example
+
+# Logs and OS/editor files
+*.log
+.DS_Store
+.idea/
+.vscode/
