@@ -24,11 +24,13 @@ import {
 import {
   createClient,
   createProperty,
-  createRequest,
+  createRequestBundle,
   isDesktopRuntime,
   listClients,
   listProperties,
   listRequests,
+  NEW_CLIENT_ID,
+  NEW_PROPERTY_ID,
 } from "./lib/database";
 import type {
   Client,
@@ -42,6 +44,7 @@ import type {
 } from "./lib/types";
 import { translate, type Locale } from "./i18n";
 import { missingQuickRequestFields } from "./lib/validation";
+import { SearchablePicker } from "./components/SearchablePicker";
 import "./App.css";
 
 type IconType = typeof Home;
@@ -143,8 +146,8 @@ function App() {
     setToast(t("created"));
   }
 
-  async function handleCreateRequest(input: RequestInput) {
-    await createRequest(input);
+  async function handleCreateRequest(input: RequestInput, newClient?: Omit<ClientInput, "type">, newProperty?: Omit<PropertyInput, "clientId">) {
+    await createRequestBundle(input, newClient, newProperty);
     await refreshData();
     setModal(null);
     setToast(t("requestCreated"));
@@ -590,7 +593,14 @@ function PropertyForm({ clients, locale, t, onClose, onSave }: { clients: Client
   return (
     <Modal title={t("newProperty")} subtitle={t("jobInfo")} onClose={onClose}>
       <form onSubmit={submit} className="space-y-4">
-        <div className="field-group"><label className="field-label" htmlFor="property-client">{t("associatedClient")} <Required /></label><select id="property-client" className="form-input" value={clientId} onChange={(event) => setClientId(event.target.value)} required><option value="">{t("selectClient")}</option>{clients.map((client) => <option key={client.id} value={client.id}>{client.name} · {client.type === "direct" ? t("direct") : t("manager")}</option>)}</select></div>
+        <SearchablePicker
+          label={`${t("associatedClient")} *`}
+          value={clientId}
+          options={clients.map((client) => ({ value: client.id, label: client.name, detail: [client.company_name || (client.type === "direct" ? t("direct") : t("manager")), client.phone].join(" · ") }))}
+          placeholder={t("searchClient")}
+          noResults={t("noMatches")}
+          onChange={setClientId}
+        />
         <div className="field-group"><label className="field-label" htmlFor="property-address">{t("address")} <Required /></label><input autoFocus id="property-address" className="form-input" value={addressLine1} onChange={(event) => setAddressLine1(event.target.value)} required /></div>
         <div className="field-group"><label className="field-label" htmlFor="property-address2">{t("addressLine2")}</label><input id="property-address2" className="form-input" value={addressLine2} onChange={(event) => setAddressLine2(event.target.value)} /></div>
         <div className="grid gap-3 sm:grid-cols-2">
@@ -606,10 +616,14 @@ function PropertyForm({ clients, locale, t, onClose, onSave }: { clients: Client
   );
 }
 
-function RequestForm({ clients, properties, locale, t, onClose, onSave }: { clients: Client[]; properties: Property[]; locale: Locale; t: (key: Parameters<typeof translate>[1]) => string; onClose: () => void; onSave: (input: RequestInput) => Promise<void> }) {
+function RequestForm({ clients, properties, locale, t, onClose, onSave }: { clients: Client[]; properties: Property[]; locale: Locale; t: (key: Parameters<typeof translate>[1]) => string; onClose: () => void; onSave: (input: RequestInput, newClient?: Omit<ClientInput, "type">, newProperty?: Omit<PropertyInput, "clientId">) => Promise<void> }) {
   const [clientType, setClientType] = useState<ClientType>("direct");
   const [clientId, setClientId] = useState("");
   const [propertyId, setPropertyId] = useState("");
+  const [newClientMode, setNewClientMode] = useState(false);
+  const [newPropertyMode, setNewPropertyMode] = useState(false);
+  const [newClientCompany, setNewClientCompany] = useState("");
+  const [newClientEmail, setNewClientEmail] = useState("");
   const [contactName, setContactName] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [tenantName, setTenantName] = useState("");
@@ -627,10 +641,15 @@ function RequestForm({ clients, properties, locale, t, onClose, onSave }: { clie
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (missingQuickRequestFields({ clientId, propertyId, clientType, contactName, contactPhone, tenantName, tenantPhone, addressLine1, addressLine2, city, subdivision, postalCode, description, preferredAt }).length > 0) return setError(t("required"));
+    if (newPropertyMode && !clientId) return setError(t("selectClientFirst"));
     setSaving(true);
     setError("");
     try {
-      await onSave({ clientId, propertyId, clientType, contactName, contactPhone, tenantName, tenantPhone, addressLine1, addressLine2, city, subdivision, postalCode, description, preferredAt });
+      await onSave(
+        { clientId, propertyId, clientType, contactName, contactPhone, tenantName, tenantPhone, addressLine1, addressLine2, city, subdivision, postalCode, description, preferredAt },
+        newClientMode ? { name: contactName, phone: contactPhone, companyName: newClientCompany, email: newClientEmail } : undefined,
+        newPropertyMode ? { addressLine1, addressLine2, city, subdivision, postalCode, countryCode: "" } : undefined,
+      );
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : t("required"));
     } finally {
@@ -638,15 +657,117 @@ function RequestForm({ clients, properties, locale, t, onClose, onSave }: { clie
     }
   }
 
+  const clientOptions = [
+    ...(newClientMode ? [{ value: NEW_CLIENT_ID, label: contactName || (locale === "es" ? "Cliente nuevo" : "New client"), detail: `${clientType === "direct" ? t("direct") : t("manager")} · ${t("quickCreateWillSave")}` }] : []),
+    ...clients.map((client) => ({ value: client.id, label: client.name, detail: [client.company_name || (client.type === "direct" ? t("direct") : t("manager")), client.phone].join(" · ") })),
+  ];
+  const propertyOptions = [
+    ...(newPropertyMode ? [{ value: NEW_PROPERTY_ID, label: addressLine1 || (locale === "es" ? "Propiedad nueva" : "New property"), detail: t("quickCreateWillSave") }] : []),
+    ...properties.map((property) => ({ value: property.id, label: property.address_line1, detail: [property.city, property.subdivision, property.client_name].filter(Boolean).join(" · ") })),
+  ];
+  const selectedProperty = properties.find((property) => property.id === propertyId);
+  const assignedClient = clients.find((client) => client.id === selectedProperty?.client_id);
+  const hasAssignmentMismatch = Boolean(assignedClient && clientId && clientId !== assignedClient.id);
+  const hasExistingClientSelection = Boolean(clientId && clientId !== NEW_CLIENT_ID);
+
   return (
     <Modal title={t("newRequest")} subtitle={locale === "es" ? "CAPTURA RÁPIDA · LOS CAMPOS CON * SON OBLIGATORIOS" : "QUICK INTAKE · FIELDS WITH * ARE REQUIRED"} onClose={onClose} wide>
       <form onSubmit={submit} className="space-y-5">
-        {(clients.length > 0 || properties.length > 0) && <div className="field-group"><div className="field-label">{t("linkExisting")}</div><div className="grid gap-3 sm:grid-cols-2">
-          <div className="field-group"><label className="field-label" htmlFor="request-client">{t("linkedClient")}</label><select id="request-client" className="form-input" value={clientId} onChange={(event) => { const selected = clients.find((client) => client.id === event.target.value); setClientId(event.target.value); if (selected) { setClientType(selected.type); setContactName(selected.name); setContactPhone(selected.phone); } }}><option value="">{locale === "es" ? "Sin vincular" : "No link"}</option>{clients.map((client) => <option key={client.id} value={client.id}>{client.name}</option>)}</select></div>
-          <div className="field-group"><label className="field-label" htmlFor="request-property">{t("linkedProperty")}</label><select id="request-property" className="form-input" value={propertyId} onChange={(event) => { const selected = properties.find((property) => property.id === event.target.value); setPropertyId(event.target.value); if (selected) { setAddressLine1(selected.address_line1); setAddressLine2(selected.address_line2 || ""); setCity(selected.city); setSubdivision(selected.subdivision || ""); setPostalCode(selected.postal_code || ""); } }}><option value="">{locale === "es" ? "Sin vincular" : "No link"}</option>{properties.map((property) => <option key={property.id} value={property.id}>{property.address_line1} · {property.city}</option>)}</select></div>
-        </div></div>}
+        <div className="field-group"><div className="field-label">{t("linkExisting")}</div><div className="grid gap-3">
+          <SearchablePicker
+            label={t("linkedClient")}
+            value={clientId}
+            options={clientOptions}
+            placeholder={t("searchClient")}
+            noResults={t("noMatches")}
+            createAction={t("createClientAction")}
+            onCreate={(query) => {
+              setContactName(query);
+              setNewClientCompany("");
+              setNewClientEmail("");
+              setNewClientMode(true);
+              setClientId(NEW_CLIENT_ID);
+            }}
+            onChange={(id) => {
+              setClientId(id);
+              if (!id) {
+                setNewClientMode(false);
+                setNewClientCompany("");
+                setNewClientEmail("");
+                return;
+              }
+              if (id === NEW_CLIENT_ID) {
+                setNewClientMode(true);
+                return;
+              }
+              setNewClientMode(false);
+              setNewClientCompany("");
+              setNewClientEmail("");
+              const selected = clients.find((client) => client.id === id);
+              if (selected) {
+                setClientType(selected.type);
+                setContactName(selected.name);
+                setContactPhone(selected.phone);
+              }
+            }}
+          />
+          {newClientMode && <div className="rounded-lg border border-indigo-100 bg-indigo-50/60 p-3">
+            <div className="mb-2 text-[11px] font-medium leading-relaxed text-indigo-900">{t("quickCreateWillSave")}</div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="field-group"><label className="field-label" htmlFor="quick-client-company">{t("company")}</label><input id="quick-client-company" className="form-input bg-white" value={newClientCompany} onChange={(event) => setNewClientCompany(event.target.value)} /></div>
+              <div className="field-group"><label className="field-label" htmlFor="quick-client-email">{t("email")}</label><input id="quick-client-email" className="form-input bg-white" type="email" value={newClientEmail} onChange={(event) => setNewClientEmail(event.target.value)} /></div>
+            </div>
+          </div>}
+          <SearchablePicker
+            label={t("linkedProperty")}
+            value={propertyId}
+            options={propertyOptions}
+            placeholder={t("searchProperty")}
+            noResults={t("noMatches")}
+            createAction={t("createPropertyAction")}
+            onCreate={(query) => {
+              const address = query.trim() || addressLine1;
+              setAddressLine1(address);
+              setNewPropertyMode(true);
+              setPropertyId(NEW_PROPERTY_ID);
+            }}
+            createDisabled={!clientId}
+            createDisabledHint={t("selectClientFirst")}
+            onChange={(id) => {
+              setPropertyId(id);
+              if (!id) {
+                setNewPropertyMode(false);
+                return;
+              }
+              if (id === NEW_PROPERTY_ID) {
+                setNewPropertyMode(true);
+                return;
+              }
+              setNewPropertyMode(false);
+              const selected = properties.find((property) => property.id === id);
+              if (selected) {
+                setAddressLine1(selected.address_line1);
+                setAddressLine2(selected.address_line2 || "");
+                setCity(selected.city);
+                setSubdivision(selected.subdivision || "");
+                setPostalCode(selected.postal_code || "");
+                if (!clientId && selected.client_id) {
+                  const propertyClient = clients.find((client) => client.id === selected.client_id);
+                  if (propertyClient) {
+                    setClientId(propertyClient.id);
+                    setClientType(propertyClient.type);
+                    setContactName(propertyClient.name);
+                    setContactPhone(propertyClient.phone);
+                  }
+                }
+              }
+            }}
+          />
+          {newPropertyMode && <div className="rounded-lg border border-indigo-100 bg-indigo-50/60 px-3 py-2.5 text-[11px] leading-relaxed text-indigo-900">{t("quickCreateWillSave")}</div>}
+          {hasAssignmentMismatch && assignedClient && <div role="status" className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-[11px] leading-relaxed text-amber-800">{t("propertyAssignmentWarning").replace("{client}", assignedClient.name)}</div>}
+        </div></div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="field-group"><label className="field-label">{t("type")} <Required /></label><div className="grid grid-cols-2 gap-2"><ChoiceButton active={clientType === "direct"} onClick={() => setClientType("direct")} icon={Users}>{t("directClient")}</ChoiceButton><ChoiceButton active={clientType === "property_manager"} onClick={() => setClientType("property_manager")} icon={Building2}>{t("propertyManager")}</ChoiceButton></div></div>
+          <div className="field-group"><label className="field-label">{t("type")} <Required /></label><div className="grid grid-cols-2 gap-2"><ChoiceButton disabled={hasExistingClientSelection} active={clientType === "direct"} onClick={() => setClientType("direct")} icon={Users}>{t("directClient")}</ChoiceButton><ChoiceButton disabled={hasExistingClientSelection} active={clientType === "property_manager"} onClick={() => setClientType("property_manager")} icon={Building2}>{t("propertyManager")}</ChoiceButton></div>{hasExistingClientSelection && <div className="mt-1.5 text-[10px] leading-relaxed text-slate-400">{t("linkedClientTypeHint")}</div>}</div>
           <div className="field-group"><label className="field-label" htmlFor="request-date">{t("preferredAt")}</label><div className="relative"><CalendarDays size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" /><input id="request-date" className="form-input pl-9" type="datetime-local" value={preferredAt} onChange={(event) => setPreferredAt(event.target.value)} /></div></div>
         </div>
         <div className="field-group"><div className="field-label mb-3">{t("contactInfo")}</div><div className="grid gap-3 sm:grid-cols-2">
@@ -693,8 +814,8 @@ function Modal({ title, subtitle, children, onClose, wide = false }: { title: st
   return <div className="modal-backdrop fixed inset-0 z-40 flex items-end justify-center bg-slate-950/40 p-0 backdrop-blur-[2px] sm:items-center sm:p-5" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}><section role="dialog" aria-modal="true" aria-labelledby="modal-title" className={`modal-panel max-h-[94vh] w-full overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:max-h-[90vh] sm:rounded-2xl ${wide ? "max-w-[700px]" : "max-w-[540px]"}`}><header className="flex items-start justify-between border-b border-slate-100 px-5 py-4 sm:px-6"><div><h2 id="modal-title" className="text-base font-semibold text-slate-900">{title}</h2><p className="mt-1 text-[9px] font-bold tracking-[0.12em] text-slate-400">{subtitle}</p></div><button onClick={onClose} className="flex size-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Close"><X size={17} /></button></header><div className="max-h-[calc(94vh-72px)] overflow-y-auto px-5 py-5 sm:max-h-[calc(90vh-72px)] sm:px-6">{children}</div></section></div>;
 }
 
-function ChoiceButton({ active, onClick, icon: Icon, children }: { active: boolean; onClick: () => void; icon: IconType; children: ReactNode }) {
-  return <button type="button" onClick={onClick} className={`flex min-h-10 items-center justify-center gap-2 rounded-lg border px-2.5 text-xs font-medium transition ${active ? "border-indigo-300 bg-indigo-50 text-indigo-700 ring-2 ring-indigo-100" : "border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50"}`}><Icon size={14} />{children}</button>;
+function ChoiceButton({ active, onClick, icon: Icon, children, disabled = false }: { active: boolean; onClick: () => void; icon: IconType; children: ReactNode; disabled?: boolean }) {
+  return <button type="button" disabled={disabled} onClick={onClick} className={`flex min-h-10 items-center justify-center gap-2 rounded-lg border px-2.5 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-60 ${active ? "border-indigo-300 bg-indigo-50 text-indigo-700 ring-2 ring-indigo-100" : "border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50"}`}><Icon size={14} />{children}</button>;
 }
 
 function FormActions({ locale, t, saving, onCancel, disabled = false }: { locale: Locale; t: (key: Parameters<typeof translate>[1]) => string; saving: boolean; onCancel: () => void; disabled?: boolean }) {

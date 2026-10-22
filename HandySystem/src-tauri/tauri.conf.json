@@ -21,6 +21,11 @@
     ],
     "security": {}
   },
+  "plugins": {
+    "sql": {
+      "preload": ["sqlite:handyman.db"]
+    }
+  },
   "bundle": {
     "active": true,
     "targets": "all",

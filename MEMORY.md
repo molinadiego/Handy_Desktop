@@ -40,4 +40,11 @@
 
 - Scaffold React/TypeScript/Tauri inicial en `HandySystem/`; Tailwind y plugin SQL para SQLite configurados.
 - Primera UI de alta/listado de clientes, propiedades y solicitudes; migración local y validación de captura rápida añadidas.
-- `npm run test`, `npm run build`, `cargo check` y el build release Tauri (`--no-bundle`) pasan. Rust/Cargo stable 1.99.1 está instalado. La app Tauri se abrió y creó/aplicó la migración SQLite en `~/Library/Application Support/com.handysystem.desktop/handyman.db`; falta probar altas desde UI y persistencia tras reiniciar.
+- `npm run test`, `npm run build`, `cargo check` y el build release Tauri (`--no-bundle`) pasan. Rust/Cargo stable 1.99.1 está instalado. Se creó desde UI un cliente, una propiedad y una solicitud; los tres y su asociación cliente/propiedad persisten tras reiniciar la app. Base local: `~/Library/Application Support/com.handysystem.desktop/handyman.db`.
+- Los selectores de cliente/administradora y propiedad en captura de solicitud son buscables por texto, filtran sin distinguir mayúsculas ni acentos y admiten interacción por teclado.
+- La captura rápida permite preparar un cliente/administradora y propiedad nuevos inline; solo se insertan al guardar la solicitud mediante una transacción SQLite, incluyendo historial owner/manager. Cancelar no persiste borradores.
+- El usuario validó manualmente los iconos sin superposición, el selector buscable en Nueva propiedad, la alta inline de administradora/propiedad y la cancelación sin registros parciales.
+- Edición de clientes/administradoras y propiedades es requisito mínimo pendiente para corregir errores de tipeo; los cambios actuales no deben modificar silenciosamente datos históricos de trabajos/facturas.
+- Reportes acordados para trabajos, presupuestos y facturas: filtrar por todos los estados, cliente/administradora y rango de fechas; imprimir PDF o enviar desde la app. Fechas: trabajos por fecha programada/finalizada/cancelada según estado; facturas por creación; presupuestos por creación o envío.
+- Email de reportes: remitente configurable por el dueño, objetivo OAuth Gmail/Microsoft y SMTP genérico; credenciales en almacén seguro del SO. Implementación pendiente.
+- Estados acordados: órdenes (pendiente, programada, en curso, realizada, cancelada); presupuestos (borrador, enviado, aceptado, rechazado, vencido, cancelado); facturas separan ciclo (borrador, emitida, anulada) de pago (no pagada, parcial, pagada). Transiciones detalladas pendientes por módulo.

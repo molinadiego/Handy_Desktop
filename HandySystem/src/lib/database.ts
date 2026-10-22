@@ -1,5 +1,5 @@
 import Database from "@tauri-apps/plugin-sql";
-import { isTauri } from "@tauri-apps/api/core";
+import { invoke, isTauri } from "@tauri-apps/api/core";
 import type {
   Client,
   ClientInput,
@@ -11,6 +11,8 @@ import type {
 
 const WORKSPACE_ID = "local-workspace";
 const DATABASE_URL = "sqlite:handyman.db";
+export const NEW_CLIENT_ID = "__new_client__";
+export const NEW_PROPERTY_ID = "__new_property__";
 
 let databasePromise: Promise<Database> | undefined;
 
@@ -119,33 +121,46 @@ export async function listRequests(): Promise<WorkRequest[]> {
   );
 }
 
-export async function createRequest(input: RequestInput): Promise<void> {
-  const db = await database();
-  const timestamp = now();
-  await db.execute(
-    `INSERT INTO requests
-       (id, workspace_id, client_id, property_id, client_type, contact_name, contact_phone, tenant_name, tenant_phone,
-        address_line1, address_line2, city, subdivision, postal_code, description, preferred_at,
-        status, created_at, updated_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, 'received', $17, $17)`,
-    [
-      crypto.randomUUID(),
-      WORKSPACE_ID,
-      input.clientId || null,
-      input.propertyId || null,
-      input.clientType,
-      input.contactName.trim(),
-      input.contactPhone.trim(),
-      input.tenantName.trim() || null,
-      input.tenantPhone.trim() || null,
-      input.addressLine1.trim(),
-      input.addressLine2.trim() || null,
-      input.city.trim(),
-      input.subdivision.trim() || null,
-      input.postalCode.trim() || null,
-      input.description.trim(),
-      input.preferredAt ? new Date(input.preferredAt).toISOString() : null,
-      timestamp,
-    ],
-  );
+export async function createRequestBundle(
+  input: RequestInput,
+  newClient?: Omit<ClientInput, "type">,
+  newProperty?: Omit<PropertyInput, "clientId">,
+): Promise<void> {
+  if (!isTauri()) throw new Error("Abrí HandySystem como aplicación de escritorio para guardar la solicitud.");
+
+  await invoke("create_request_bundle", {
+    input: {
+      requestId: crypto.randomUUID(),
+      clientId: input.clientId && input.clientId !== NEW_CLIENT_ID ? input.clientId : null,
+      propertyId: input.propertyId && input.propertyId !== NEW_PROPERTY_ID ? input.propertyId : null,
+      clientType: input.clientType,
+      contactName: input.contactName,
+      contactPhone: input.contactPhone,
+      tenantName: input.clientType === "property_manager" ? input.tenantName || null : null,
+      tenantPhone: input.clientType === "property_manager" ? input.tenantPhone || null : null,
+      addressLine1: input.addressLine1,
+      addressLine2: input.addressLine2 || null,
+      city: input.city,
+      subdivision: input.subdivision || null,
+      postalCode: input.postalCode || null,
+      description: input.description,
+      preferredAt: input.preferredAt ? new Date(input.preferredAt).toISOString() : null,
+      newClient: newClient ? {
+        id: crypto.randomUUID(),
+        name: newClient.name,
+        companyName: newClient.companyName || null,
+        phone: newClient.phone,
+        email: newClient.email || null,
+      } : null,
+      newProperty: newProperty ? {
+        id: crypto.randomUUID(),
+        addressLine1: newProperty.addressLine1,
+        addressLine2: newProperty.addressLine2 || null,
+        city: newProperty.city,
+        subdivision: newProperty.subdivision || null,
+        postalCode: newProperty.postalCode || null,
+        countryCode: newProperty.countryCode || null,
+      } : null,
+    },
+  });
 }

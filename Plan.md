@@ -11,6 +11,10 @@ Usa las casillas para seguir el avance: `[ ]` pendiente y `[x]` completado y ver
 - Sugerir seguimientos para presupuesto sin respuesta, confirmar cita y cobrar saldos; plazos configurables por workspace y editables por tarea.
 - Lanzamiento MVP local-first en un dispositivo, sin sincronización multi-dispositivo.
 - Incluir backup local automático y opciones de exportación/restauración.
+- Reportes deben filtrar por todos los estados definidos para cada entidad, cliente/administradora y rango de fechas; permitir imprimir y enviar por email.
+- Órdenes: pendiente, programada, en curso, realizada y cancelada.
+- Presupuestos: borrador, enviado, aceptado, rechazado, vencido y cancelado.
+- Facturas: estado de ciclo (borrador, emitida, anulada) separado del estado de pago (no pagada, parcial, pagada).
 - [ ] Definir periodicidad, destino, retención, cifrado y flujo de restauración de backups.
 - [ ] Diseñar validación central de licencia/usuario por separado de la sincronización (requisito aún presente en `handyman.md`).
 
@@ -21,28 +25,37 @@ Usa las casillas para seguir el avance: `[ ]` pendiente y `[x]` completado y ver
 - [x] Instalar Rust/Cargo estable y verificar compilación nativa con `cargo check`.
 - [x] Generar binario release de Tauri con `npm run tauri -- build --no-bundle`.
 - [x] Abrir la app Tauri y confirmar que el plugin crea/aplica la migración SQLite.
-- [ ] Probar altas y listados desde los formularios de la app y verificar persistencia tras reiniciar.
+- [x] Crear registros de prueba desde la UI y verificar que siguen en SQLite después de reiniciar la app.
 - [x] Definir esquema SQLite inicial, IDs, migración e aislamiento por `workspace_id`.
 - [ ] Definir roles/permisos, seguridad local y protección de credenciales sensibles.
 - [ ] Especificar idioma, país, estado/provincia, moneda principal y zona horaria por workspace.
 - [x] Implementar base visual responsive conforme a `diseno.md`.
 - [x] Compilar frontend de producción con TypeScript y Vite.
 - [x] Abrir app nativa de escritorio y confirmar base SQLite inicializada.
-- [ ] Probar persistencia de altas desde la UI y recuperación al reiniciar.
+- [x] Confirmar que los registros de prueba persisten después de reiniciar la app.
 
-**Salida de fase:** arquitectura y esquema inicial registrados; frontend compila. La salida nativa de escritorio queda pendiente de instalar Rust/Cargo y ejecutar Tauri.
+**Salida de fase:** arquitectura y esquema inicial registrados; frontend y binario nativo compilan. Falta completar validaciones manuales de flujos en la ventana de escritorio.
 
 ## Fase 1 — Clientes, propiedades y captura de trabajo
 
 - [x] Especificar y construir alta/listado local de clientes directos y administradoras.
+- [ ] Permitir editar clientes directos y administradoras (nombre, contacto, teléfono, email y empresa) para corregir errores.
 - [x] Construir alta/listado de propiedades asociadas a un cliente y guardar asignación inicial en historial.
+- [ ] Permitir editar los datos actuales de propiedades para corregir dirección y otros datos de ubicación.
 - [ ] Añadir reasignación de propiedad que cierre relación vigente y preserve historial anterior.
 - [x] Implementar captura rápida, validación de campos obligatorios y guardado en SQLite.
 - [x] Permitir fecha preferida y datos de tenant/contacto opcionales; asociar cliente/propiedad existentes opcionalmente.
+- [x] Hacer buscables los selectores de cliente/administradora y propiedad para escalar a cientos de registros.
+- [x] Permitir alta inline de cliente/administradora y propiedad desde la solicitud; confirmar ambos junto con la solicitud en una sola transacción.
+- [x] En el caso de administradora, guardar tenant/contacto de acceso solo en la solicitud y asignar la propiedad a la administradora.
+- [x] Validación manual: selector buscable de cliente en Nueva propiedad, iconos sin superposición, alta inline de administradora/propiedad y cancelación sin registros parciales.
 - [ ] Agregar captura y visualización de fotos.
-- [ ] Validar lectura/escritura offline en runtime Tauri real (pendiente de Rust/Cargo).
+- [x] Probar manualmente alta inline de cliente/propiedad/solicitud y cancelación desde la ventana Tauri.
+- [ ] Probar captura y guardado con la red desconectada.
 - [ ] Construir solicitudes y presupuestos versionados, descuentos manuales y exportación PDF.
 - [ ] Construir órdenes con modalidad de cobro, fechas, estado, prioridad, asignados, instrucciones, materiales, fotos y notas.
+- [x] Definir los catálogos acordados de estados para presupuestos y órdenes de trabajo.
+- [x] Definir estado de ciclo de factura por separado de estado de pago.
 - [ ] Mantener transiciones Solicitud → Presupuesto/Acuerdo → Orden explícitas y confirmadas.
 
 **Criterios de aceptación**
@@ -51,6 +64,7 @@ Usa las casillas para seguir el avance: `[ ]` pendiente y `[x]` completado y ver
 - [ ] Verificar captura y guardado sin conexión en Tauri real; el código usa SQLite local.
 - [x] Guardar solicitud no la convierte automáticamente en presupuesto u orden.
 - [ ] Propiedades y datos históricos no se reasignan al cambiar dueño/administradora.
+- [ ] Editar perfiles no altera silenciosamente los datos históricos capturados en trabajos/facturas anteriores.
 
 ## Fase 2 — Agenda, seguimiento y ejecución
 
@@ -70,7 +84,7 @@ Usa las casillas para seguir el avance: `[ ]` pendiente y `[x]` completado y ver
 - [ ] Fechas se guardan en UTC y se muestran en la zona horaria del workspace.
 - [ ] Horas reales no alteran automáticamente precios fijos.
 
-## Fase 3 — Facturación y finanzas
+## Fase 3 — Facturación, finanzas y reportes
 
 - [ ] Implementar una moneda principal por workspace y formatos de presentación regionales.
 - [ ] Permitir configurar y aplicar impuestos manualmente; no hacer cálculo fiscal automático en MVP.
@@ -79,13 +93,24 @@ Usa las casillas para seguir el avance: `[ ]` pendiente y `[x]` completado y ver
 - [ ] Mostrar por separado importe acordado, facturado, cobrado y saldo pendiente.
 - [ ] Implementar anulaciones y ajustes con motivo e historial inmutable.
 - [ ] Al anular factura emitida, conservar historial y devolver orden a “Pendiente de Facturar”.
-- [ ] Crear informes operativos y financieros básicos.
+- [ ] Reporte de trabajos con filtro por todos los estados del ciclo (incluye pendientes, programados, en curso, realizados y cancelados).
+- [ ] Los reportes permiten filtrar uno o varios estados de cada entidad (Todos por defecto), usando los catálogos completos acordados.
+- [ ] Para trabajos, filtrar pendientes/programados/en curso por fecha programada, realizados por fecha de finalización y cancelados por fecha de cancelación.
+- [ ] Reporte de facturas por fecha de creación y por cualquier estado de factura definido, incluyendo pagadas y no pagadas.
+- [ ] Reporte de presupuestos por fecha de creación o envío y por cualquier estado de presupuesto definido.
+- [ ] Permitir filtrar cada reporte por un cliente/administradora o incluir todos.
+- [ ] Permitir rango desde/hasta para los reportes y seleccionar uno o varios estados (Todos por defecto).
+- [ ] Generar una vista imprimible/PDF de cada reporte y usar el diálogo de impresión del sistema.
+- [ ] Crear informes operativos y financieros básicos con totales/listados acordes al tipo de reporte.
 
 **Criterios de aceptación**
 
 - [ ] Pruebas cubren importes, redondeo, pagos parciales, aplicación múltiple, saldo y anulaciones.
 - [ ] Ninguna corrección financiera borra información silenciosamente.
 - [ ] Cambiar la configuración regional no convierte importes históricos automáticamente.
+- [ ] Pruebas cubren cada estado, filtro por cliente/administradora y límites inclusivos del rango de fechas.
+- [ ] La fecha aplicada coincide con la regla acordada para cada tipo y estado de reporte.
+- [ ] PDF/impresión conserva filtros aplicados y es legible en inglés y español.
 
 ## Fase 4 — Respaldo, seguridad e integraciones
 
@@ -96,6 +121,9 @@ Usa las casillas para seguir el avance: `[ ]` pendiente y `[x]` completado y ver
 - [ ] Aplicar permisos por rol y proteger códigos de acceso/lockbox.
 - [ ] Definir validación de licencia/usuario online con operación local offline continua.
 - [ ] Permitir al dueño configurar canales email/SMS/WhatsApp mediante proveedor elegido.
+- [ ] Permitir configurar un remitente de email del dueño: OAuth para Gmail y Microsoft/Outlook/Hotmail, y SMTP genérico para otros proveedores compatibles.
+- [ ] Guardar credenciales/tokens del proveedor en el almacén seguro del sistema operativo, nunca en texto plano en SQLite.
+- [ ] Enviar reportes PDF a destinatarios desde la app usando el proveedor configurado, con confirmación y feedback de errores.
 - [ ] Implementar confirmación/reprogramación segura y aprobación del dueño si se decide incluir esos servicios en MVP.
 - [ ] Evaluar almacenamiento de adjuntos y distribución de documentos.
 
