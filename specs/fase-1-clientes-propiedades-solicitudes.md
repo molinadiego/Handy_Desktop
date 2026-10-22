@@ -1,6 +1,6 @@
 # Fase 1 — Clientes, propiedades y solicitudes
 
-Estado: primera implementación frontend y esquema local SQLite realizados. Falta validación nativa Tauri (Rust no está instalado), además de varios flujos de edición y adjuntos.
+Estado: primera implementación frontend y esquema local SQLite realizados; `cargo check` y build release Tauri pasaron. Falta ejecutar la app y validar el plugin SQLite en runtime, además de varios flujos de edición y adjuntos.
 
 ## Alcance
 
@@ -21,6 +21,8 @@ Estado: primera implementación frontend y esquema local SQLite realizados. Falt
 - [x] La captura rápida permite guardar solicitudes con los campos requeridos sin fecha preferida ni datos del tenant.
 - [x] Se puede vincular opcionalmente cliente/propiedad existentes y la dirección se copia a la solicitud.
 - [x] La validación de campos obligatorios tiene pruebas unitarias.
+- [x] Compilar el backend nativo con `cargo check`.
+- [x] Generar binario Tauri release con `--no-bundle`.
 - [ ] Ejecutar y validar migración/lecturas/escrituras en un runtime Tauri real.
 - [ ] Editar clientes y propiedades, incluida reasignación que cierre relación vigente y agregue una nueva sin modificar el historial anterior.
 - [ ] Agregar/ver fotos y notas en una solicitud.
@@ -33,5 +35,5 @@ Estado: primera implementación frontend y esquema local SQLite realizados. Falt
 - DB: `HandySystem/src-tauri/migrations/0001_initial.sql`.
 - Registro del plugin SQL y migración de Tauri en `HandySystem/src-tauri/src/lib.rs`.
 - Acceso a datos encapsulado en `HandySystem/src/lib/database.ts`.
-- El plugin SQL requiere Rust. Hasta instalar Rust/Cargo, `npm run build` y las pruebas frontend son verificables, pero `npm run tauri dev` no puede ejecutarse.
+- El plugin SQL requiere Rust; stable 1.99.1 ya está instalado y el binario release compila. Falta probar la app y el acceso a SQLite dentro del runtime.
 - La asociación de propiedad/cliente se conserva como historial; en esta primera iteración solo se crea la asignación inicial, todavía no hay UI de reasignación.

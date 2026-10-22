@@ -18,13 +18,15 @@ Usa las casillas para seguir el avance: `[ ]` pendiente y `[x]` completado y ver
 
 - [x] Revisar estructura actual y definir la separación inicial entre UI, dominio y persistencia.
 - [x] Crear scaffold React + TypeScript + Tauri v2 y confirmar build del frontend.
-- [ ] Instalar Rust/Cargo y verificar compatibilidad/compilación nativa de Tauri.
+- [x] Instalar Rust/Cargo estable y verificar compilación nativa con `cargo check`.
+- [x] Generar binario release de Tauri con `npm run tauri -- build --no-bundle`.
+- [ ] Ejecutar la app Tauri y validar migraciones y lecturas/escrituras SQLite en runtime.
 - [x] Definir esquema SQLite inicial, IDs, migración e aislamiento por `workspace_id`.
 - [ ] Definir roles/permisos, seguridad local y protección de credenciales sensibles.
 - [ ] Especificar idioma, país, estado/provincia, moneda principal y zona horaria por workspace.
 - [x] Implementar base visual responsive conforme a `diseno.md`.
 - [x] Compilar frontend de producción con TypeScript y Vite.
-- [ ] Compilar y abrir app nativa de escritorio (bloqueado por falta de Rust/Cargo).
+- [ ] Abrir y probar la app nativa de escritorio (la compilación Rust ya pasa; falta validar runtime).
 
 **Salida de fase:** arquitectura y esquema inicial registrados; frontend compila. La salida nativa de escritorio queda pendiente de instalar Rust/Cargo y ejecutar Tauri.
 
