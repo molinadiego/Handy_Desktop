@@ -40,4 +40,4 @@
 
 - Scaffold React/TypeScript/Tauri inicial en `HandySystem/`; Tailwind y plugin SQL para SQLite configurados.
 - Primera UI de alta/listado de clientes, propiedades y solicitudes; migración local y validación de captura rápida añadidas.
-- `npm run test`, `npm run build`, `cargo check` y el build release Tauri (`--no-bundle`) pasan. Rust/Cargo stable 1.99.1 está instalado; falta abrir la app y validar el plugin SQLite en runtime.
+- `npm run test`, `npm run build`, `cargo check` y el build release Tauri (`--no-bundle`) pasan. Rust/Cargo stable 1.99.1 está instalado. La app Tauri se abrió y creó/aplicó la migración SQLite en `~/Library/Application Support/com.handysystem.desktop/handyman.db`; falta probar altas desde UI y persistencia tras reiniciar.

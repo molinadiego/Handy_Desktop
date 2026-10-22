@@ -23,7 +23,8 @@ Estado: primera implementación frontend y esquema local SQLite realizados; `car
 - [x] La validación de campos obligatorios tiene pruebas unitarias.
 - [x] Compilar el backend nativo con `cargo check`.
 - [x] Generar binario Tauri release con `--no-bundle`.
-- [ ] Ejecutar y validar migración/lecturas/escrituras en un runtime Tauri real.
+- [x] Ejecutar la app Tauri y confirmar que SQLite crea el archivo y aplica las migraciones.
+- [ ] Validar altas/listados desde UI y persistencia al reiniciar.
 - [ ] Editar clientes y propiedades, incluida reasignación que cierre relación vigente y agregue una nueva sin modificar el historial anterior.
 - [ ] Agregar/ver fotos y notas en una solicitud.
 - [ ] Definir y probar asociación/edición posterior de tenant y contacto de acceso.
@@ -35,5 +36,5 @@ Estado: primera implementación frontend y esquema local SQLite realizados; `car
 - DB: `HandySystem/src-tauri/migrations/0001_initial.sql`.
 - Registro del plugin SQL y migración de Tauri en `HandySystem/src-tauri/src/lib.rs`.
 - Acceso a datos encapsulado en `HandySystem/src/lib/database.ts`.
-- El plugin SQL requiere Rust; stable 1.99.1 ya está instalado y el binario release compila. Falta probar la app y el acceso a SQLite dentro del runtime.
+- Rust stable 1.99.1 está instalado. La app se abrió y creó `handyman.db` con las tablas/migraciones esperadas. Falta comprobar alta/listado desde la UI y persistencia tras reiniciar.
 - La asociación de propiedad/cliente se conserva como historial; en esta primera iteración solo se crea la asignación inicial, todavía no hay UI de reasignación.
