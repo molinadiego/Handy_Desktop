@@ -50,7 +50,7 @@ Los catálogos de estados acordados están en `specs/estados-flujos.md`; los rep
 
 ## Pendientes técnicos
 
-- Definir los estados completos de solicitudes, presupuestos, órdenes y facturas en las especificaciones de cada módulo; los reportes consumen esos catálogos, no una lista duplicada.
+- Definir los estados completos de presupuestos, órdenes y facturas en las especificaciones de cada módulo; los reportes consumen esos catálogos, no una lista duplicada.
 - Definir comportamiento del rango si falta fecha programada/finalización/cancelación.
 - Verificar flujos OAuth de Google/Microsoft y compatibilidad/seguridad de SMTP genérico; decidir qué proveedores entran en el primer lanzamiento.
 - Determinar los totales/columnas específicos de cada reporte.

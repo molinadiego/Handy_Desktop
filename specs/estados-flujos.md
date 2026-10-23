@@ -47,7 +47,7 @@ Separar el ciclo de vida del estado de pago para evitar solapamientos:
 - Cada reporte puede filtrar por todos los estados, uno o varios estados, un cliente/administradora específico y un rango desde/hasta.
 - La lista de opciones debe corresponder a los catálogos de estado de la entidad; no mantener listas divergentes en la UI de reportes.
 - Generar salida imprimible/PDF y enviar el PDF por email desde la app con el proveedor configurado por el dueño.
-- Los cambios de estado no convierten automáticamente solicitudes, presupuestos, órdenes o facturas; las conversiones siguen requiriendo confirmación explícita.
+- Los cambios de estado no convierten automáticamente presupuestos, órdenes o facturas; las transiciones siguen requiriendo confirmación explícita.
 
 ## Transiciones por definir en las especificaciones de módulo
 

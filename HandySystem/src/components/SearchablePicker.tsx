@@ -140,7 +140,7 @@ export function SearchablePicker({
                 key={option.value}
                 role="option"
                 aria-selected={value === option.value}
-                className={`flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-md px-3 py-2 text-left transition ${activeIndex === index ? "bg-indigo-50" : "hover:bg-slate-50"}`}
+                 className={`flex min-h-12 cursor-pointer items-center justify-between gap-3 rounded-md px-3 py-2.5 text-left transition ${activeIndex === index ? "bg-indigo-50" : "hover:bg-slate-50"}`}
                 onMouseEnter={() => setActiveIndex(index)}
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => choose(option)}
@@ -155,7 +155,7 @@ export function SearchablePicker({
                 id={`${listId}-create`}
                 role="option"
                 aria-selected={activeIndex === filtered.length}
-                className={`flex min-h-11 cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium text-indigo-700 ${activeIndex === filtered.length ? "bg-indigo-50" : "hover:bg-indigo-50"}`}
+                 className={`flex min-h-12 cursor-pointer items-center gap-2 rounded-md px-3 py-2.5 text-left text-sm font-medium text-indigo-700 ${activeIndex === filtered.length ? "bg-indigo-50" : "hover:bg-indigo-50"}`}
                 onMouseEnter={() => setActiveIndex(filtered.length)}
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={createFromQuery}

@@ -35,6 +35,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .toast { animation: toast-in .2s ease-out; }
 .loading-spinner { width: 14px; height: 14px; border: 2px solid rgb(255 255 255 / 45%); border-top-color: white; border-radius: 50%; animation: spin .7s linear infinite; }
 .line-clamp-2 { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.print-document { display: none; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
@@ -49,4 +50,11 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+
+@media print {
+  @page { margin: 18mm; }
+  body * { visibility: hidden !important; }
+  .print-document, .print-document * { visibility: visible !important; }
+  .print-document { display: block !important; position: absolute; inset: 0; width: 100%; padding: 0; color: #111827; background: #fff; font-family: Arial, sans-serif; }
 }

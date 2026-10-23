@@ -17,7 +17,7 @@
 
 ## Reglas de negocio que deben preservarse
 
-- Flujo: Solicitud → Presupuesto/Acuerdo → Orden de Trabajo → Factura → Cobro. Cada transición requiere confirmación del usuario; no convertir registros silenciosamente.
+- Flujo principal: el dueño registra una Orden de Trabajo desde una llamada/mensaje; puede crear un Presupuesto vinculado si hace falta. No existe módulo de solicitudes. Aceptación, programación, cancelación y demás transiciones requieren acción explícita; no convertir ni borrar registros silenciosamente.
 - Las administradoras son el destinatario de la orden/factura cuando aplique; los datos del tenant se usan para coordinar acceso. Preserva el contexto histórico de trabajos aunque cambie la administración o titularidad.
 - Precio fijo: las horas reales no cambian automáticamente el precio. Cambios requieren ajuste explícito y justificación.
 - Tiempo y materiales: registrar horas y materiales para calcular/justificar el costo. Trabajos adicionales requieren motivo, importe y aprobación explícita.
@@ -27,7 +27,7 @@
 - Protege códigos de acceso/lockbox según rol. Aplica mínimo privilegio.
 - La configuración regional debe permitir seleccionar país, estado/provincia y moneda. No fijes USD ni asumas una jurisdicción única; la interfaz debe soportar inglés y español.
 - El dueño configura los canales de recordatorios (email, SMS y/o WhatsApp) mediante proveedores compatibles. No asumas proveedor ni envíes comunicaciones sin configuración/autorización.
-- La captura rápida de solicitud exige nombre y teléfono del contacto, dirección del trabajo y descripción breve; fecha y fotos son opcionales. Permite clasificar como cliente directo o administradora; para administradora, los datos del tenant/contacto de acceso pueden completarse después.
+- La captura rápida de orden exige nombre y teléfono del contacto, dirección del trabajo y descripción breve; fecha y fotos son opcionales. Permite clasificar como cliente directo o administradora; para administradora, los datos del tenant/contacto de acceso pueden completarse después.
 - Sugiere seguimientos para presupuestos sin respuesta, confirmación de citas y cobro de saldos. Los plazos predeterminados se configuran por workspace y se pueden ajustar en cada tarea.
 - Cada workspace usa una moneda principal en el MVP. Los impuestos son configurables y se aplican manualmente; no prometas cálculo fiscal automático ni cumplimiento por jurisdicción.
 - El MVP es local-first, sin sincronización multi-dispositivo al lanzamiento. Debe incluir backups locales automáticos y exportación/restauración; no incorpores proveedor cloud sin confirmación.
@@ -50,4 +50,4 @@
 
 ## Alcance MVP conocido
 
-Incluye clientes, property managers y propiedades; solicitudes, presupuestos y órdenes; agenda y asignaciones; personal; materiales y gastos; facturas, cobros y saldos; adjuntos, notas e informes básicos. Escritorio es la primera fase; móvil es fase posterior. No incluir IA autónoma, pagos con tarjeta dentro de la app, nómina completa ni GPS en tiempo real.
+Incluye clientes, property managers y propiedades; órdenes, presupuestos, agenda y asignaciones; personal; materiales y gastos; facturas, cobros y saldos; adjuntos, notas e informes básicos. Escritorio es la primera fase; móvil es fase posterior. No incluir IA autónoma, pagos con tarjeta dentro de la app, nómina completa ni GPS en tiempo real.

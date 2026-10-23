@@ -1,6 +1,6 @@
 # HandySystem Desktop
 
-Aplicación offline-first para administrar clientes, propiedades y solicitudes de trabajo. Stack: Tauri v2, React, TypeScript, Tailwind CSS y SQLite.
+Aplicación offline-first para administrar clientes, propiedades y órdenes de trabajo. Stack: Tauri v2, React, TypeScript, Tailwind CSS y SQLite.
 
 ## Requisitos
 

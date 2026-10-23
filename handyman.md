@@ -10,7 +10,7 @@ Arquitectura y Stack Objetivo: Tauri v2 + React (o Vue) + TypeScript + Tailwind 
 Módulos Clave:
 
 - Clientes, Administradoras de Propiedades e Inmuebles.
-- Solicitudes, Presupuestos y Órdenes de Trabajo.
+- Órdenes de Trabajo y Presupuestos.
 - Agenda, Citas, Asignación de Trabajos y Recordatorios.
 - Empleados, Ayudantes y Subcontratistas.
 - Materiales, Gastos y Costos por Trabajo.
@@ -42,9 +42,10 @@ Módulos Clave:
 
 4. SOLICITUDES, PRESUPUESTOS Y ÓRDENES DE TRABAJO
 
-- Flujo de Trabajo: Solicitud -> Presupuesto / Acuerdo -> Orden de Trabajo -> Factura -> Cobro. (Ningún paso convierte datos automáticamente sin confirmación del usuario).
-- Presupuestos: Creación, edición, historial de versiones y exportación a PDF. Descuentos aplicados manualmente.
-- Órdenes de Trabajo: Incluyen cliente/administradora, propiedad, descripción, fechas/tiempos estimados, estado, prioridad, personal asignado, instrucciones de acceso, materiales, fotos y notas.
+- Flujo de Trabajo: el dueño registra una Orden de Trabajo a partir de una llamada o mensaje. No existe entidad ni flujo de solicitudes. Si hace falta precio previo, crea un Presupuesto vinculado a la orden. Si se acepta, la orden queda aceptada y se puede agendar; si se cancela/no aprueba, se conserva el presupuesto y se cancela la orden. Luego: Orden de Trabajo -> Factura -> Cobro. Ningún paso convierte o cancela registros automáticamente sin confirmación del usuario.
+- Presupuestos: Creación desde una orden, edición, historial de versiones y exportación a PDF. Descuentos aplicados manualmente. La validez es de 15 días corridos desde el envío. Al vencer, el presupuesto queda vencido y se solicita al dueño decidir si cancela la orden o prepara/envía una nueva versión.
+- Órdenes de Trabajo: Incluyen cliente/administradora, propiedad, descripción, fechas/tiempos estimados, estado, prioridad, personal asignado, instrucciones de acceso, materiales, fotos y notas. Sin presupuesto, al acordar la visita se agenda una ventana con fecha/hora de inicio y fin, editable; 4 horas es habitual, no obligatorio.
+- Lockbox y gate code son campos opcionales de acceso asociados a la orden (y disponibles para el presupuesto relacionado), protegidos por permisos y excluidos de PDF/documentos para clientes.
 - Modalidad de Cobro:
   - Precio Fijo: El tiempo real registrado no altera el precio acordado automáticamente.
   - Tiempo y Materiales: Permite calcular o justificar el costo según horas y materiales consumidos.
@@ -56,7 +57,7 @@ Módulos Clave:
 - Citas y Confirmaciones:
   - Envío de recordatorios por email, SMS o WhatsApp configurable por el dueño(vía proveedor compatible).
   - Para propiedades administradas, las notificaciones de acceso van al tenant, no a la administradora.
-  - Enlace seguro para confirmación o solicitud de reprogramación por parte del cliente/tenant. Las solicitudes quedan pendientes de aprobación por el dueño.
+   - Enlace seguro para confirmación o pedido de reprogramación por parte del cliente/tenant. Los pedidos quedan pendientes de aprobación por el dueño.
 
 6. EMPLEADOS, AYUDANTES Y SUBCONTRATISTAS
 

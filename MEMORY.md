@@ -11,7 +11,10 @@
 
 - Stack confirmado: Tauri v2, React, TypeScript, Tailwind CSS y SQLite. El usuario eligió React con TypeScript.
 - Los pagos de clientes se registran como pagos externos; no se procesan dentro de la app en el MVP.
-- Las transiciones entre solicitud, presupuesto, orden, factura y cobro requieren confirmación explícita.
+- Las transiciones entre presupuesto, orden, factura y cobro requieren confirmación explícita.
+- Flujo confirmado: la orden es el registro inicial; no existe entidad de solicitud. El presupuesto opcional se vincula a la orden; enviado deja la orden pendiente de aprobación, aceptado permite programar y cancelado también cancela la orden conservando historial. Vence a los 15 días corridos desde envío y pide decisión del dueño.
+- Órdenes guardan inicio/fin de ventana de visita (4 horas habitual pero editable); lockbox y gate code son opcionales, sensibles y no se incluyen en documentos para clientes.
+- Flujo order-first implementado con migraciones v6-v8: órdenes independientes, presupuestos vinculados y transiciones enviando/aceptando/cancelando. Vencimiento de 15 días se marca al consultar presupuestos y deja la orden pendiente de decisión. La base local eliminó la tabla `requests` y sus referencias preservando el presupuesto histórico y las órdenes.
 - El historial financiero es inmutable en el sentido operativo: correcciones mediante anulación o ajuste con historial, no borrado silencioso.
 - Timestamps en UTC y presentación con la zona horaria del workspace.
 - UI SaaS/ERP sobria, responsive y adaptada a escritorio y táctil, conforme a `diseno.md`.
@@ -39,12 +42,16 @@
 ## Estado de implementación
 
 - Scaffold React/TypeScript/Tauri inicial en `HandySystem/`; Tailwind y plugin SQL para SQLite configurados.
-- Primera UI de alta/listado de clientes, propiedades y solicitudes; migración local y validación de captura rápida añadidas.
-- `npm run test`, `npm run build`, `cargo check` y el build release Tauri (`--no-bundle`) pasan. Rust/Cargo stable 1.99.1 está instalado. Se creó desde UI un cliente, una propiedad y una solicitud; los tres y su asociación cliente/propiedad persisten tras reiniciar la app. Base local: `~/Library/Application Support/com.handysystem.desktop/handyman.db`.
-- Los selectores de cliente/administradora y propiedad en captura de solicitud son buscables por texto, filtran sin distinguir mayúsculas ni acentos y admiten interacción por teclado.
-- La captura rápida permite preparar un cliente/administradora y propiedad nuevos inline; solo se insertan al guardar la solicitud mediante una transacción SQLite, incluyendo historial owner/manager. Cancelar no persiste borradores.
+- UI local de clientes, propiedades y órdenes directas; módulo/tabla de solicitudes retirados definitivamente.
+- `npm run test`, `npm run build`, `cargo test` y formato Rust pasan. La base local `~/Library/Application Support/com.handysystem.desktop/handyman.db` aplicó la migración v8; el objeto `requests` ya no existe y presupuestos/órdenes se conservaron.
 - El usuario validó manualmente los iconos sin superposición, el selector buscable en Nueva propiedad, la alta inline de administradora/propiedad y la cancelación sin registros parciales.
-- Edición de clientes/administradoras y propiedades es requisito mínimo pendiente para corregir errores de tipeo; los cambios actuales no deben modificar silenciosamente datos históricos de trabajos/facturas.
+- La UI ya permite editar perfiles de clientes/administradoras y propiedades para corregir errores; se conserva el tipo de cliente y no se reescriben snapshots históricos. Falta prueba manual de edición/persistencia.
+- Las correcciones de perfiles ofrecen vista previa de órdenes vinculadas, selección individual y actualización transaccional auditada de snapshots.
 - Reportes acordados para trabajos, presupuestos y facturas: filtrar por todos los estados, cliente/administradora y rango de fechas; imprimir PDF o enviar desde la app. Fechas: trabajos por fecha programada/finalizada/cancelada según estado; facturas por creación; presupuestos por creación o envío.
 - Email de reportes: remitente configurable por el dueño, objetivo OAuth Gmail/Microsoft y SMTP genérico; credenciales en almacén seguro del SO. Implementación pendiente.
-- Estados acordados: órdenes (pendiente, programada, en curso, realizada, cancelada); presupuestos (borrador, enviado, aceptado, rechazado, vencido, cancelado); facturas separan ciclo (borrador, emitida, anulada) de pago (no pagada, parcial, pagada). Transiciones detalladas pendientes por módulo.
+- Estados acordados: órdenes (pendiente, pendiente de aprobación, aceptada, programada, en curso, realizada, cancelada); presupuestos (borrador, enviado, aceptado, vencido, cancelado); facturas separan ciclo (borrador, emitida, anulada) de pago (no pagada, parcial, pagada). El flujo pasa pruebas automáticas; falta prueba manual en Tauri.
+- Presupuestos: implementación local con importe global, descuento manual por importe/porcentaje, moneda de workspace requerida, versiones, estados y PDF/impresión; tests backend y frontend pasan, falta validación manual en la app Tauri.
+- Idioma y moneda del workspace se configuran desde Configuración. La moneda se puede cambiar cuando el dueño quiera; documentos existentes guardan su propia moneda y no se convierten.
+- Órdenes: alta directa, datos de contacto y dirección, presupuesto opcional vinculado, agenda inicio/fin, modalidad, prioridad, instrucciones, lockbox y gate code. Falta validación manual y módulos de empleados/materiales.
+- El formulario de orden permite buscar y vincular clientes/administradoras y propiedades existentes; permite preparar nuevos registros inline, guardados junto con la orden en una transacción. La prueba Rust valida asociación manager/property y rollback ante fallo.
+- Cambiar el estado de un presupuesto sin orden asociada crea y vincula una orden con estado correspondiente; aprobar abre el formulario para programar la visita.

@@ -2,7 +2,7 @@
 
 Estado: decisiones de producto confirmadas. Los detalles técnicos y de proveedores indicados como pendientes deben definirse antes de implementar.
 
-## Captura rápida de solicitudes
+## Captura directa de órdenes de trabajo
 
 ### Requisitos
 
@@ -15,9 +15,9 @@ Estado: decisiones de producto confirmadas. Los detalles técnicos y de proveedo
 ### Criterios de aceptación
 
 - [ ] Si falta nombre, teléfono, dirección o descripción, se impide guardar y se indica qué campo falta.
-- [ ] La solicitud se guarda aunque no haya fecha, fotos o datos del tenant.
+- [x] La orden se crea directamente con nombre/teléfono de contacto, dirección y descripción; fecha/fotos son opcionales.
 - [ ] Se conserva el tipo de cliente seleccionado.
-- [ ] Guardar no convierte automáticamente la solicitud en presupuesto u orden.
+- [x] El presupuesto opcional se crea desde una orden existente mediante acción explícita.
 
 ## Seguimientos internos
 
