@@ -8,6 +8,8 @@ Estado: clientes y propiedades se crean/editan localmente; las órdenes ahora so
 - Permitir corregir perfiles sin cambiar su tipo; cambiar entre cliente directo y administradora requiere flujo de reasignación con historial.
 - Propiedades con dirección y asociación vigente a un cliente o administradora.
 - Guardar historial temporal de asignación de propiedad para no reasignar trabajos históricos.
+- Reasignar una propiedad requiere seleccionar el nuevo cliente/administradora y confirmar. Se cierra la relación vigente y se crea otra, conservando las asignaciones anteriores.
+- La reasignación y cualquier corrección de dirección/perfil confirmada se aplican atómicamente; órdenes históricas solo se actualizan si el usuario las selecciona explícitamente.
 - Corregir perfiles con vista previa, selección de órdenes vinculadas y auditoría de valores anteriores/nuevos.
 - Las órdenes guardan snapshots; ninguna corrección reescribe registros históricos silenciosamente.
 - Guardado local SQLite, aislamiento por `workspace_id`, interfaz bilingüe y responsive.
@@ -20,7 +22,8 @@ Estado: clientes y propiedades se crean/editan localmente; las órdenes ahora so
 - [x] La vista previa permite seleccionar órdenes asociadas para corrección auditada.
 - [x] Los perfiles y órdenes seleccionados se actualizan transaccionalmente.
 - [ ] Confirmar manualmente que corregir un perfil no afecta snapshots no seleccionados ni facturas.
-- [ ] Añadir reasignación de propiedad que cierre relación vigente y preserve historial anterior.
+- [x] Añadir reasignación de propiedad que cierre relación vigente y preserve historial anterior, con confirmación explícita.
+- [x] Una reasignación con cliente inexistente o de otro workspace falla sin cambiar la relación vigente.
 - [ ] Probar operación offline en Tauri y responsive en escritorio/tablet/móvil.
 
 ## Datos históricos y migración

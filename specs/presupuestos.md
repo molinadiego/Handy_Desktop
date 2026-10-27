@@ -4,8 +4,8 @@ Estado: presupuesto versionado desde orden implementado; la migración compatibl
 
 ## Flujo
 
-- Un presupuesto se crea desde una orden mediante acción explícita y se vincula a esa orden.
-- Si un presupuesto existente no tiene orden vinculada, al cambiarlo explícitamente a `sent`, `accepted` o `cancelled`, se crea una orden con estado correspondiente (`pending_approval`, `accepted` o `cancelled`) y se vincula al presupuesto; no se crea una segunda orden si ya existe una asociación.
+- Un presupuesto se crea desde una orden mediante acción explícita y se vincula a ella, o se puede capturar independientemente con snapshot completo de destinatario/contacto/dirección.
+- Al cambiar explícitamente a `sent`, `accepted` o `cancelled` un presupuesto sin orden, se crea una orden con estado correspondiente (`pending_approval`, `accepted` o `cancelled`) y se vincula; nunca se crea duplicada.
 - Al aprobar un presupuesto sin orden, abrir la orden creada para completar la fecha/hora de inicio y fin de la visita; guardar ambas fechas programa la orden.
 - Editar un presupuesto crea una nueva versión; la versión anterior permanece consultable e inalterada.
 - Cambiar el estado requiere una acción explícita. Si ya existe orden, aceptar la actualiza y no crea otra; si no existe, el cambio de estado crea la primera orden vinculada.
@@ -14,7 +14,7 @@ Estado: presupuesto versionado desde orden implementado; la migración compatibl
 
 ## Campos de la primera versión
 
-- Para presupuestos nuevos, orden asociada obligatoria; cliente/administradora y propiedad se guardan como vínculos/snapshots de la orden. Los presupuestos históricos sin orden se vinculan al materializar la orden por cambio de estado.
+- Orden asociada opcional al guardar borrador independiente; cliente/administradora, contacto y dirección quedan en snapshot. El primer cambio de estado materializa y vincula una orden.
 - Snapshot del destinatario (cliente/administradora) y dirección al momento de crear esa versión.
 - Descripción del alcance, modalidad (precio fijo o tiempo y materiales), importe global y descuento manual.
 - Descuento manual como importe o porcentaje; total calculado sin permitir resultado negativo.
@@ -37,7 +37,7 @@ Estado: presupuesto versionado desde orden implementado; la migración compatibl
 
 ## Criterios de aceptación
 
-- [x] Crear presupuesto desde una orden, sin entidad intermedia.
+- [x] Crear presupuesto desde una orden o como borrador independiente con snapshots.
 - [x] El primer presupuesto es versión 1; editar conserva anterior y crea una revisión siguiente.
 - [x] Aceptar presupuesto actualiza la orden existente o crea una primera orden si el presupuesto no tenía asociación.
 - [x] Importe, descuento por importe/porcentaje y total se calculan/validan en la moneda del workspace.

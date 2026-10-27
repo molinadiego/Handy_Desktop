@@ -20,11 +20,11 @@ Módulos Clave:
 
 2. DECISIONES GENERALES Y ESTRATEGIA MULTIPLATAFORMA
 
-- Mercado e Idioma: Configurable, pudiendo seleccionar Pais, Estado o Provincia y Tipo de moneda. Interfaz en inglés y español.
+- Mercado e Idioma: Configurable, pudiendo seleccionar País, Estado o Provincia, Ciudad, Zona Horaria y Tipo de moneda. Interfaz en inglés y español.
 - Enfoque Multiplataforma Integrado:
   - Fase 1 (Lanzamiento Principal): Aplicación de escritorio nativa ejecutable en Windows, macOS y Linux.
   - Fase 2 (Extensión Móvil): Compilación nativa para iOS y Android (celulares y tabletas) utilizando Tauri v2 y compartiendo la misma base de código frontend y lógica de negocio.
-- Arquitectura de Datos (Offline-First): La app funcionará con una base de datos local SQLite. Permitirá operar sin conexión a internet y sincronizar datos cuando haya red disponible.
+- Arquitectura de Datos (Offline-First): En el lanzamiento la app usará SQLite local y seguirá operativa sin internet. La sincronización multidispositivo queda para una fase posterior, con servicio, conflictos y consentimiento definidos antes de implementarla.
 - Aislación por Espacio de Trabajo: Multitenancy lógico mediante workspace_id. Los datos de un negocio están estrictamente separados de otros.
 - Seguridad y Accesos:
   - El dueño del negocio es el usuario principal (Admin).
@@ -40,10 +40,10 @@ Módulos Clave:
 - Administradoras de Propiedades (Property Managers): La orden y factura se asignan a la Administradora, mientras que los datos del tenant (inquilino/contacto de acceso) se guardan en la orden únicamente para coordinar la visita.
 - Historial de Propiedades: Si una propiedad cambia de dueño o administradora, se conserva el historial de trabajos anteriores sin reasignar trabajos pasados.
 
-4. SOLICITUDES, PRESUPUESTOS Y ÓRDENES DE TRABAJO
+4. PRESUPUESTOS Y ÓRDENES DE TRABAJO
 
-- Flujo de Trabajo: el dueño registra una Orden de Trabajo a partir de una llamada o mensaje. No existe entidad ni flujo de solicitudes. Si hace falta precio previo, crea un Presupuesto vinculado a la orden. Si se acepta, la orden queda aceptada y se puede agendar; si se cancela/no aprueba, se conserva el presupuesto y se cancela la orden. Luego: Orden de Trabajo -> Factura -> Cobro. Ningún paso convierte o cancela registros automáticamente sin confirmación del usuario.
-- Presupuestos: Creación desde una orden, edición, historial de versiones y exportación a PDF. Descuentos aplicados manualmente. La validez es de 15 días corridos desde el envío. Al vencer, el presupuesto queda vencido y se solicita al dueño decidir si cancela la orden o prepara/envía una nueva versión.
+- Flujo de Trabajo: el dueño registra una Orden de Trabajo a partir de una llamada o mensaje, o ingresa un Presupuesto directamente. No existe entidad ni flujo de solicitudes. Si el presupuesto se crea sin orden, al cambiar explícitamente su estado se materializa la orden vinculada. Si se aprueba, la orden queda aceptada y se abre para programar la visita; si se cancela/no aprueba, se conserva el presupuesto y se crea/cancela la orden asociada. Luego: Orden de Trabajo -> Factura -> Cobro. Ningún paso convierte o cancela registros automáticamente sin confirmación del usuario.
+- Presupuestos: Se pueden crear desde una orden o registrar independientemente antes de que exista la orden; al cambiar explícitamente su estado, se crea y vincula una orden si todavía no existe. Edición, historial de versiones y exportación a PDF; descuentos manuales. La validez es de 15 días corridos desde el envío. Al vencer, el presupuesto queda vencido y se solicita al dueño decidir si cancela la orden o prepara/envía una nueva versión. Si se aprueba, la app abre la orden para capturar día/hora de la visita.
 - Órdenes de Trabajo: Incluyen cliente/administradora, propiedad, descripción, fechas/tiempos estimados, estado, prioridad, personal asignado, instrucciones de acceso, materiales, fotos y notas. Sin presupuesto, al acordar la visita se agenda una ventana con fecha/hora de inicio y fin, editable; 4 horas es habitual, no obligatorio.
 - Lockbox y gate code son campos opcionales de acceso asociados a la orden (y disponibles para el presupuesto relacionado), protegidos por permisos y excluidos de PDF/documentos para clientes.
 - Modalidad de Cobro:
@@ -66,7 +66,7 @@ Módulos Clave:
 
 7. MATERIALES, GASTOS Y OTROS COSTOS
 
-- Materiales: Registro de materiales previstos y utilizados por trabajo, costos, precios cobrados al cliente y comprobantes adjuntos. Reasignación manual de sobrantes.
+- Materiales (decisión confirmada): registrar por orden únicamente material, cantidad utilizada, costo total y precio unitario del material. No capturar uso previsto, unidad, precio al cliente, comprobantes ni sobrantes en este alcance; el registro no cambia automáticamente el precio acordado.
 - Gastos Operativos: Categorización de gastos del negocio (fijos/recurrentes y variables), gastos de viaje, peajes y combustible vinculados opcionalmente a un trabajo.
 
 8. FACTURAS, COBROS Y SALDOS
@@ -90,14 +90,16 @@ Módulos Clave:
 - Ajustes de Precio Fijo: Las reducciones o incrementos en trabajos a precio fijo se registran como un "Ajuste Explícito" con nota justificativa, sin recalcular automáticamente por horas.
 - Fuera del Alcance (MVP): Sin agentes de IA autónomos, sin procesamiento de pagos con tarjeta dentro de la app, sin nómina impositiva/HR completa, sin tracking GPS en tiempo real.
 
-11. MEDIDAS DE SEGURIDAD Y PROTECCIÓN CONTRA COPIA
-    Para proteger el software contra copia no autorizada y manipulación:
+11. LICENCIAMIENTO, SEGURIDAD Y DISTRIBUCIÓN
 
-- Autenticación y Validación de Licencia:
-  - Validación de usuario/licencia vinculada al espacio de trabajo (workspace_id) y al identificador de dispositivo (Hardware ID).
-  - Validación en segundo plano contra servidor central cuando exista conexión a internet, permitiendo la operación local offline continua.
-- Firmado Digital (Code Signing):
-  - Compilación de producciones firmadas digitalmente con certificados oficiales para Windows (.exe/.msi), macOS (.dmg) e iOS/Android.
-  - Esto evita que ejecutables modificados o "crackeados" puedan ejecutarse en el sistema operativo.
-- Build de Producción Ofuscado:
-  - Aplicar minificación y ofuscación de código en los paquetes de producción de Tauri/React para proteger la propiedad intelectual del código fuente.
+- Licencia del producto, independiente de los datos del negocio:
+  - La app genera un código de activación para que el comprador lo envíe al vendedor; el vendedor emite una licencia/clave firmada vinculada a la instalación o dispositivo.
+  - La activación queda offline después de instalar la licencia. No hay validación online periódica requerida.
+  - Reinstalación o cambio de computadora requiere reactivación manual autorizada por el vendedor. La app nunca bloquea el acceso a los datos locales por falta de red o por estado de licencia.
+  - La vinculación al dispositivo puede elevar el costo de copia, pero no se promete protección anticopia infalible ante un administrador local. Falta definir generación de identificador de dispositivo, minimización de datos y recuperación tras pérdida/cambio de hardware.
+- Seguridad local y roles:
+  - El dueño administra permisos de empleados/ayudantes; los códigos lockbox/gate solo se revelan a roles autorizados.
+  - Diseñar protección de credenciales sensibles en reposo y en operaciones de datos antes de usar códigos reales con empleados. Enmascarar el campo de UI no basta.
+- Firma de código y ofuscación:
+  - Firmar instaladores para identificar al editor, verificar integridad y reducir advertencias del sistema operativo en plataformas publicadas.
+  - Code signing no impide por sí solo copiar o modificar el software. Minificación/ofuscación solo añade fricción a la ingeniería inversa; no es una garantía de seguridad.

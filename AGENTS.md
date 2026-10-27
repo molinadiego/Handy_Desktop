@@ -25,12 +25,13 @@
 - No borres silenciosamente registros financieros. Usa anulaciones/ajustes auditables. Al anular una factura emitida, conserva el historial y vuelve la orden asociada a “Pendiente de Facturar”.
 - No procesar pagos de clientes dentro de la aplicación en el MVP; registrar pagos externos.
 - Protege códigos de acceso/lockbox según rol. Aplica mínimo privilegio.
-- La configuración regional debe permitir seleccionar país, estado/provincia y moneda. No fijes USD ni asumas una jurisdicción única; la interfaz debe soportar inglés y español.
+- La configuración regional debe permitir seleccionar país, estado/provincia, ciudad, zona horaria y moneda. No fijes USD ni asumas una jurisdicción única; la interfaz debe soportar inglés y español.
 - El dueño configura los canales de recordatorios (email, SMS y/o WhatsApp) mediante proveedores compatibles. No asumas proveedor ni envíes comunicaciones sin configuración/autorización.
 - La captura rápida de orden exige nombre y teléfono del contacto, dirección del trabajo y descripción breve; fecha y fotos son opcionales. Permite clasificar como cliente directo o administradora; para administradora, los datos del tenant/contacto de acceso pueden completarse después.
 - Sugiere seguimientos para presupuestos sin respuesta, confirmación de citas y cobro de saldos. Los plazos predeterminados se configuran por workspace y se pueden ajustar en cada tarea.
 - Cada workspace usa una moneda principal en el MVP. Los impuestos son configurables y se aplican manualmente; no prometas cálculo fiscal automático ni cumplimiento por jurisdicción.
 - El MVP es local-first, sin sincronización multi-dispositivo al lanzamiento. Debe incluir backups locales automáticos y exportación/restauración; no incorpores proveedor cloud sin confirmación.
+- La licencia del producto se activa con una clave firmada y reactivación manual por el vendedor; no requiere validación online periódica y nunca debe bloquear los datos locales. Code signing aporta identidad/integridad del editor; no se presenta como mecanismo anticopia.
 
 ## UI y accesibilidad visual
 
